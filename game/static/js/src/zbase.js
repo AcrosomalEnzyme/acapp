@@ -1,4 +1,5 @@
-class AcGame {
+//模块化需要加export
+export class AcGame {
     constructor(id) {
         //id：div的id
         this.id = id;

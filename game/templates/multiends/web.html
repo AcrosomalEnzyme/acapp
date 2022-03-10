@@ -5,12 +5,15 @@
     <script src="https://cdn.acwing.com/static/jquery/js/jquery-3.3.1.min.js"></script>
     <!--    %是Django的一个工具，这句表达查找static目录+后面的路径，因为用到了static关键字，所以第一行要加上-->
     <link rel="stylesheet" href="{% static 'css/game.css' %}">
-    <script src="{% static 'js/dist/game.js' %}"></script>
+{#    模块化引用后，不需要下面这一行#}
+{#    <script src="{% static 'js/dist/game.js' %}"></script>#}
 </head>
 <!--margin表示边框大小-->
 <body style="margin:0">
     <div id="ac_game_12345678"></div>
-    <script>
+{#    以下两行，新增加模块化引用#}
+    <script type="module">
+        import {AcGame} from "{% static 'js/dist/game.js' %}";
         {#    ready表示整个文件已经准备好了。与var定义变量不同，let定义的变量只在{}块内有效#}
         {#    整个游戏在class里面，叫AcGame#}
         {#    整个界面是前端渲染的，不是后端渲染的，用JavaScript#}
