@@ -17,6 +17,11 @@ from django.contrib import admin
 from django.urls import path, include
 
 urlpatterns = [
+    # 将game的url引导过来
+    # 访问http://175.178.119.52:8000/，先去acapp的urls下面去匹配，空的，进入到game/urls/index中去进一步查找，
+    # 后面如果是menu，（path("menu/", include("game.urls.menu.index")),），就继续往下进入menu文件夹的index去查找，
+    # 如果是空的，（path("", index, name="index"),）直接访问views文件夹下的index函数，（return render(request,"multiends/web.html")），
+    # 所以会返回template文件夹下的multiends文件夹的web.html
     path("",include("game.urls.index")),
     path('admin/', admin.site.urls),
 ]

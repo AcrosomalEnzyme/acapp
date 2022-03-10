@@ -25,11 +25,19 @@ SECRET_KEY = 'django-insecure-!w)b%jek4j5w*4^7jg5hp0x#o=3w$5(-3s9gqm$yrp!e9m^v(a
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
+# 浏览器访问：http://175.178.119.52:8000/
+# 会出现：Invalid HTTP_HOST header: '175.178.119.52:8000'. You may need to add '175.178.119.52' to ALLOWED_HOSTS.
+# 将175.178.119.52加入ALLOWED_HOSTS：
+# 可以ag ALLOWED_HOSTS，进行搜索定位
+
 ALLOWED_HOSTS = ["175.178.119.52","127.0.0.1"]
 
 
 # Application definition
 
+# 进入game文件夹，apps.py，将gameconfig加入配置文件的INSTALLED_APPS
+# 'game.apps.GameConfig',
+# 对数据库有影响
 INSTALLED_APPS = [
     'game.apps.GameConfig',
     'django.contrib.admin',
@@ -106,6 +114,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
+# 设置时区
 TIME_ZONE = 'Asia/Shanghai'
 
 USE_I18N = True
@@ -118,6 +127,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
 
+# 这个只用改一次。一般情况下，static存开发者文件，media存用户文件
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 STATIC_URL = '/static/'
 

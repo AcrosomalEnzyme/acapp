@@ -1,14 +1,21 @@
 {% load static %}
 <head>
+{#    使用jquery的cdn，加入head标签中间即可：#}
     <link rel="stylesheet" href="https://cdn.acwing.com/static/jquery-ui-dist/jquery-ui.min.css">
     <script src="https://cdn.acwing.com/static/jquery/js/jquery-3.3.1.min.js"></script>
+    <!--    %是Django的一个工具，这句表达查找static目录+后面的路径，因为用到了static关键字，所以第一行要加上-->
     <link rel="stylesheet" href="{% static 'css/game.css' %}">
     <script src="{% static 'js/dist/game.js' %}"></script>
 </head>
-
+<!--margin表示边框大小-->
 <body style="margin:0">
     <div id="ac_game_12345678"></div>
     <script>
+        {#    ready表示整个文件已经准备好了。与var定义变量不同，let定义的变量只在{}块内有效#}
+        {#    整个游戏在class里面，叫AcGame#}
+        {#    整个界面是前端渲染的，不是后端渲染的，用JavaScript#}
+        {#    views，urls函数里面所有的内容都是在服务器端跑，js文件夹中所有函数都是客户端跑的#}
+        {#    用JavaScript实现HTML文件中的对象，不在HTML文件中写js能减轻后端负担，不需要先渲染再发送#}
         $(document).ready(function(){
             let ac_game = new AcGame("ac_game_12345678");
         });
