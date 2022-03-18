@@ -4,7 +4,7 @@ export class AcGame {
         //id：div的id
         this.id = id;
         this.$ac_game = $('#' + id);
-        this.menu = new AcGameMenu(this);
+        //this.menu = new AcGameMenu(this);
         this.playground = new AcGamePlayground(this);
 
         this.start();

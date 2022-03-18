@@ -39,3 +39,9 @@ transition：设定变化的时间实现平滑变化*/
     transform: scale(1.2);
     transition: 100ms;
 }
+
+.ac-game-playground {
+    width: 100%;
+    height:100%;
+    user-select: none;
+}
