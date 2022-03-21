@@ -23,14 +23,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-!w)b%jek4j5w*4^7jg5hp0x#o=3w$5(-3s9gqm$yrp!e9m^v(a'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 # 浏览器访问：http://175.178.119.52:8000/
 # 会出现：Invalid HTTP_HOST header: '175.178.119.52:8000'. You may need to add '175.178.119.52' to ALLOWED_HOSTS.
 # 将175.178.119.52加入ALLOWED_HOSTS：
 # 可以ag ALLOWED_HOSTS，进行搜索定位
 
-ALLOWED_HOSTS = ["175.178.119.52","127.0.0.1"]
+ALLOWED_HOSTS = ["175.178.119.52","127.0.0.1","app1881.acapp.acwing.com.cn"]
 
 
 # Application definition
