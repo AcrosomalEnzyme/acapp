@@ -31,6 +31,13 @@ class Player extends AcGameObject {
         //判断是否选了技能
         this.our_skill = null;
 
+        //定义图片，用来作为头像
+        //如果是自己才绘出头像
+        if(this.is_me)
+        {
+            this.img = new Image();
+            this.img.src = this.playground.root.settings.photo;
+        }
     }
 
     start()
@@ -254,6 +261,20 @@ class Player extends AcGameObject {
 
     render()
     {
+        //如果是自己，画头像
+        if (this.is_me)
+        {
+            this.ctx.save();
+            this.ctx.beginPath();
+            this.ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
+            this.ctx.stroke();
+            this.ctx.clip();
+            this.ctx.drawImage(this.img, this.x - this.radius, this.y - this.radius, this.radius * 2, this.radius * 2);
+            this.ctx.restore();
+        }
+        //如果是电脑，画颜色
+        else
+        {
             //画出一个圆
             this.ctx.beginPath();
             //起始坐标，半径，起始角度，是否顺时针
@@ -262,6 +283,7 @@ class Player extends AcGameObject {
             this.ctx.fillStyle = this.color;
             //把颜色填充进去
             this.ctx.fill();
+        }
     }
 
     //删除玩家

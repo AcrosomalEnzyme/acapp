@@ -17,11 +17,13 @@ class AcGameMenu {
         </div>
         <br>
         <div class="ac-game-menu-field-item ac-game-menu-field-item-settings">
-            设置
+            退出登录
         </div>
     </div>
 </div>
 `);
+        //还没有确认用户是否登录，进行隐藏
+        this.$menu.hide();
         //对象创建完后，将对象添加到div中
         this.root.$ac_game.append(this.$menu);
         this.$single_mode = this.$menu.find('.ac-game-menu-field-item-sigle-mode');
@@ -40,17 +42,24 @@ class AcGameMenu {
     add_listening_events() {
         //function里面的this会和外面不一样，避免混淆，提取成outer
         let outer = this;
+
+        //点击单人模式按钮时
         this.$single_mode.click(function(){
             //先将当前对象关闭，再打开游戏界面
             outer.hide();
             //root作用体现了，root包含了playground
             outer.root.playground.show();
         });
+
+        //点击多人模式按钮时
         this.$multi_mode.click(function(){
             console.log("click multi mode");
         });
+
+        //点击设置按钮时
         this.$settings.click(function(){
             console.log("click settings");
+            outer.root.settings.logout_on_remote();
         });
     }
 
@@ -257,6 +266,13 @@ class Player extends AcGameObject {
         //判断是否选了技能
         this.our_skill = null;
 
+        //定义图片，用来作为头像
+        //如果是自己才绘出头像
+        if(this.is_me)
+        {
+            this.img = new Image();
+            this.img.src = this.playground.root.settings.photo;
+        }
     }
 
     start()
@@ -480,6 +496,20 @@ class Player extends AcGameObject {
 
     render()
     {
+        //如果是自己，画头像
+        if (this.is_me)
+        {
+            this.ctx.save();
+            this.ctx.beginPath();
+            this.ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
+            this.ctx.stroke();
+            this.ctx.clip();
+            this.ctx.drawImage(this.img, this.x - this.radius, this.y - this.radius, this.radius * 2, this.radius * 2);
+            this.ctx.restore();
+        }
+        //如果是电脑，画颜色
+        else
+        {
             //画出一个圆
             this.ctx.beginPath();
             //起始坐标，半径，起始角度，是否顺时针
@@ -488,6 +518,7 @@ class Player extends AcGameObject {
             this.ctx.fillStyle = this.color;
             //把颜色填充进去
             this.ctx.fill();
+        }
     }
 
     //删除玩家
@@ -676,12 +707,369 @@ class AcGamePlayground {
     */
 
 }
+class Settings
+{
+    constructor(root)
+    {
+        this.root = root;
+        //默认是web平台
+        this.platform = "WEB";
+        if (this.root.AcWingOS)
+            this.platform = "ACAPP";
+        this.username = "";
+        this.photo = "";
+
+        //渲染登录界面
+        this.$settings = $(`
+            <div class="ac-game-settings">
+
+
+                <div class="ac-game-settings-login">
+
+
+                    <div class="ac-game-settings-title">
+                        登录
+                    </div>
+
+
+                    <div class="ac-game-settings-username">
+                        <div class="ac-game-settings-item">
+                            <input type="text" placeholder="用户名">
+                        </div>
+                    </div>
+
+
+                    <div class="ac-game-settings-password">
+                        <div class="ac-game-settings-item">
+                            <input type="password" placeholder="密码">
+                        </div>
+                    </div>
+
+
+                    <div class="ac-game-settings-submit">
+                        <div class="ac-game-settings-item">
+                            <button>登录</button>
+                        </div>
+                    </div>
+
+
+                    <div class="ac-game-settings-error-message">
+                        
+                    </div>
+
+
+                    <div class="ac-game-settings-option">
+                        注册
+                    </div>
+
+
+                    <br>
+                    <div class="ac-game-settings-acwing">
+                        <img width="30" src="https://app1881.acapp.acwing.com.cn/static/image/settings/acwing_logo.png">
+                        <br>
+                        <div>
+                            AcWing一键登录
+                        </div>
+                    </div>
+
+
+                </div>
+
+
+
+
+
+
+
+                <div class="ac-game-settings-register">
+
+                    <div class="ac-game-settings-title">
+                        注册
+                    </div>
+
+
+                    <div class="ac-game-settings-username">
+                        <div class="ac-game-settings-item">
+                            <input type="text" placeholder="用户名">
+                        </div>
+                    </div>
+
+
+                    <div class="ac-game-settings-password ac-game-settings-password-first">
+                        <div class="ac-game-settings-item">
+                            <input type="password" placeholder="密码">
+                        </div>
+                    </div>
+
+
+                    <div class="ac-game-settings-password ac-game-settings-password-second">
+                        <div class="ac-game-settings-item">
+                            <input type="password" placeholder="确认密码">
+                        </div>
+                    </div>
+
+
+                    <div class="ac-game-settings-submit">
+                        <div class="ac-game-settings-item">
+                            <button>注册</button>
+                        </div>
+                    </div>
+
+
+                    <div class="ac-game-settings-error-message">
+                        
+                    </div>
+
+
+                    <div class="ac-game-settings-option">
+                        登录
+                    </div>
+
+
+                    <br>
+                    <div class="ac-game-settings-acwing">
+                        <img width="30" src="https://app1881.acapp.acwing.com.cn/static/image/settings/acwing_logo.png">
+                        <br>
+                        <div>
+                            AcWing一键登录
+                        </div>
+                    </div>
+
+
+                </div>
+            </div>
+        `);
+
+        //提取出整个登录框
+        this.$login = this.$settings.find(".ac-game-settings-login");
+        //提取相应的信息，不是相邻两级，不用 >
+        this.$login_username = this.$login.find(".ac-game-settings-username input");
+        this.$login_password = this.$login.find(".ac-game-settings-password input");
+        this.$login_submit = this.$login.find(".ac-game-settings-submit button");
+        this.$login_error_message = this.$login.find(".ac-game-settings-error-message");
+        this.$login_register = this.$login.find(".ac-game-settings-option");
+        this.$login.hide();
+
+        //提取出整个注册框
+        this.$register = this.$settings.find(".ac-game-settings-register");
+        //提取出相应的信息
+        this.$register_username = this.$register.find(".ac-game-settings-username input");
+        this.$register_password = this.$register.find(".ac-game-settings-password-first input");
+        this.$register_password_confirm = this.$register.find(".ac-game-settings-password-second input");
+        this.$register_submit = this.$register.find(".ac-game-settings-submit button");
+        this.$register_error_message = this.$register.find(".ac-game-settings-error-message");
+        this.$register_login = this.$register.find(".ac-game-settings-option");
+        this.$register.hide();
+
+        this.root.$ac_game.append(this.$settings);
+
+
+        this.start();
+    }
+
+    start()
+    {
+        //从服务器端获取信息
+        this.getinfo();
+        //绑定监听函数
+        this.add_listening_events_login();
+        this.add_listening_events_register();
+    }
+
+    //登录界面监听函数
+    add_listening_events_login()
+    {
+        //有click函数都需要定义outer
+        let outer = this;
+
+        //切换注册界面的监听函数
+        this.$login_register.click(function(){
+            outer.register();
+        });
+
+        //登录按钮的监听函数
+        this.$login_submit.click(function(){
+            outer.login_on_remote();
+        });
+    }
+
+    //注册界面的监听函数
+    add_listening_events_register()
+    {
+        let outer = this;
+
+        //切换登录界面的监听函数
+        this.$register_login.click(function(){
+            outer.login_on_remote();
+        });
+
+        //注册按钮的监听函数
+        this.$register_submit.click(function(){
+            outer.register_on_remote();
+        });
+    }
+
+    //在远程服务器上登录
+    login_on_remote()
+    {
+        let outer = this;
+        //获取用户输入的用户名和密码
+        //val表示取出input的值
+        let username = this.$login_username.val();
+        let password = this.$login_password.val();
+
+        //每次点击要清空错误信息
+        this.$login_error_message.empty();
+
+        $.ajax({
+            url: "https://app1881.acapp.acwing.com.cn/settings/login/",
+            type: "GET",
+            data: {
+                username: username,
+                password: password,
+            },
+            success: function(res){
+                console.log(res);
+                if (res.result === "success")
+                {
+                    //登录成功就刷新网页，
+                    //这样就能通过调用getinfo，加载出菜单界面
+                    location.reload();
+                }
+                else
+                {
+                    //登录失败就显示失败信息
+                    outer.$login_error_message.html(res.result);
+                }
+            }
+        });
+    }
+
+    //在远程服务器上注册
+    register_on_remote()
+    {
+        let outer = this;
+        let username = this.$register_username.val();
+        let password = this.$register_password.val();
+        let password_confirm = this.$register_password_confirm.val();
+        this.$register_error_message.empty();
+
+        console.log(password);
+        console.log(password_confirm);
+
+        $.ajax({
+            url: "https://app1881.acapp.acwing.com.cn/settings/register/",
+            type: "GET",
+            data: {
+                username: username,
+                password: password,
+                password_confirm: password_confirm,
+            },
+            success: function(res){
+                console.log(res);
+                if(res.result === "success")
+                {
+                    location.reload();
+                }
+                else
+                {
+                    outer.$register_error_message.html(res.result);
+                }
+            }
+        })
+    }
+
+    //在远程服务器上登出
+    logout_on_remote()
+    {
+        //如果登录平台是ACAPP，不执行接下来的操作
+        if (this.platform === "ACAPP") return false;
+
+        $.ajax({
+            url: "https://app1881.acapp.acwing.com.cn/settings/logout/",
+            type: "GET",
+            success: function(res){
+                console.log(res);
+                if (res.result === "success")
+                {
+                    location.reload();
+                }
+            }
+        });
+    }
+
+    //打开登录界面
+    login()
+    {
+        this.$register.hide();
+        this.$login.show();
+    }
+
+    //打开注册界面
+    register()
+    {
+        this.$login.hide();
+        this.$register.show();
+    }
+
+
+    getinfo()
+    {
+        //为了记录外部的“this”
+        let outer = this;
+        $.ajax({
+            //像相应的链接发送请求
+            url:"https://app1881.acapp.acwing.com.cn/settings/getinfo/",
+            type:"GET",
+            data:{
+                platform: outer.platform,
+            },
+            success: function(res)
+            {
+                console.log(res);
+                if(res.result === "success")
+                {
+                    //记录传回来的用户名称和头像
+                    outer.username = res.username;
+                    outer.photo = res.photo;
+                    //把当前界面隐藏，并展示菜单界面
+                    outer.hide();
+                    outer.root.menu.show();
+                }
+                else
+                {
+                    outer.login();
+                }
+            }
+        });
+    }
+
+    //整个界面都隐藏，无论登录或者注册
+    hide()
+    {
+        this.$settings.hide();
+    }
+
+    //整个界面都展示
+    show()
+    {
+        this.$settings.hide();
+    }
+}
 //模块化需要加export
 export class AcGame {
-    constructor(id) {
+    //通过是否有AcwingOS参数判断是否在是ACAPP中调用的
+    constructor(id, AcWingOS) {
         //id：div的id
         this.id = id;
         this.$ac_game = $('#' + id);
+
+        //如果是ACAPP调用的，其中包含参数
+        this.AcWingOS = AcWingOS;
+
+
+        //三者顺序不能变化，不然会有先运用再定义的情况
+        this.settings = new Settings(this);
         this.menu = new AcGameMenu(this);
         this.playground = new AcGamePlayground(this);
 

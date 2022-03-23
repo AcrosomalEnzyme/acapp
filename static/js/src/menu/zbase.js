@@ -17,11 +17,13 @@ class AcGameMenu {
         </div>
         <br>
         <div class="ac-game-menu-field-item ac-game-menu-field-item-settings">
-            设置
+            退出登录
         </div>
     </div>
 </div>
 `);
+        //还没有确认用户是否登录，进行隐藏
+        this.$menu.hide();
         //对象创建完后，将对象添加到div中
         this.root.$ac_game.append(this.$menu);
         this.$single_mode = this.$menu.find('.ac-game-menu-field-item-sigle-mode');
@@ -40,17 +42,24 @@ class AcGameMenu {
     add_listening_events() {
         //function里面的this会和外面不一样，避免混淆，提取成outer
         let outer = this;
+
+        //点击单人模式按钮时
         this.$single_mode.click(function(){
             //先将当前对象关闭，再打开游戏界面
             outer.hide();
             //root作用体现了，root包含了playground
             outer.root.playground.show();
         });
+
+        //点击多人模式按钮时
         this.$multi_mode.click(function(){
             console.log("click multi mode");
         });
+
+        //点击设置按钮时
         this.$settings.click(function(){
             console.log("click settings");
+            outer.root.settings.logout_on_remote();
         });
     }
 

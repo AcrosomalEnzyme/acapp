@@ -23,7 +23,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-!w)b%jek4j5w*4^7jg5hp0x#o=3w$5(-3s9gqm$yrp!e9m^v(a'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 # 浏览器访问：http://175.178.119.52:8000/
 # 会出现：Invalid HTTP_HOST header: '175.178.119.52:8000'. You may need to add '175.178.119.52' to ALLOWED_HOSTS.

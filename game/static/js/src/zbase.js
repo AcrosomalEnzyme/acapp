@@ -1,9 +1,17 @@
 //模块化需要加export
 export class AcGame {
-    constructor(id) {
+    //通过是否有AcwingOS参数判断是否在是ACAPP中调用的
+    constructor(id, AcWingOS) {
         //id：div的id
         this.id = id;
         this.$ac_game = $('#' + id);
+
+        //如果是ACAPP调用的，其中包含参数
+        this.AcWingOS = AcWingOS;
+
+
+        //三者顺序不能变化，不然会有先运用再定义的情况
+        this.settings = new Settings(this);
         this.menu = new AcGameMenu(this);
         this.playground = new AcGamePlayground(this);
 
