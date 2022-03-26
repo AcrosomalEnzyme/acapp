@@ -11,6 +11,9 @@ class Player(models.Model):
     #头像是一个链接，最大长度256，可以为空
     photo = models.URLField(max_length = 256, blank = True)
 
+    #增加openID，是32位字符串
+    openid = models.CharField(default="", max_length=50, blank=True, null=True)
+
     #展示用户的名字
     def __str__(self):
         return str(self.user)

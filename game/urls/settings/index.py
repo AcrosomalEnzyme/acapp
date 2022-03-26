@@ -1,4 +1,5 @@
-from django.urls import path
+#如果新建了文件夹，就要添加include
+from django.urls import path, include
 #引入获取用户信息的view中的获取登录信息函数
 from game.views.settings.getinfo import getinfo
 #引入登录的view中的登录函数
@@ -14,4 +15,5 @@ urlpatterns = [
     path("login/", signin, name="settings_login"),
     path("logout/", signout, name="settings_logout"),
     path("register/", register, name="settings_register"),
+    path("acwing/", include("game.urls.settings.acwing.index")),
 ]
