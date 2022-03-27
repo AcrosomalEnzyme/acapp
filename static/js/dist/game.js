@@ -872,10 +872,18 @@ class Settings
 
     start()
     {
+        //判断是web端还是acapp端登录
+        if (this.platform === "ACAPP")
+        {
+            this.getinfo_acapp();
+        }
+        else
+        {
         //从服务器端获取信息
-        this.getinfo();
+        this.getinfo_web();
         //绑定监听函数
         this.add_listening_events();
+        }
     }
 
     //统一绑定监听函数
@@ -1041,8 +1049,42 @@ class Settings
         this.$register.show();
     }
 
+    //
+    acapp_login(appid, redirect_uri, scope, state)
+    {
+        let outer = this;
+        this.root.AcWingOS.api.oauth2.authorize(appid, redirect_uri, scope, state, function(res){
+            console.log(res);
+            if (res.result === "success")
+            {
+                outer.username = res.username;
+                outer.photo = res.photo;
+                outer.hide();
+                outer.root.menu.show();
+            }
+        });
 
-    getinfo()
+    }
+
+    //获取用户是否登录的状态，acapp端
+    getinfo_acapp()
+    {
+        let outer = this;
+        $.ajax({
+            url: "https://app1881.acapp.acwing.com.cn/settings/acwing/acapp/apply_code/",
+            type: "GET",
+            success: function(res){
+                if(res.result === "success")
+                {
+                    outer.acapp_login(res.appid, res.redirect_uri, res.scope, res.state);
+                }
+
+            }
+        })
+    }
+
+    //获取用户是否登录的状态，web端
+    getinfo_web()
     {
         //为了记录外部的“this”
         let outer = this;
@@ -1089,6 +1131,7 @@ class Settings
 export class AcGame {
     //通过是否有AcwingOS参数判断是否在是ACAPP中调用的
     constructor(id, AcWingOS) {
+        console.log(AcWingOS);
         //id：div的id
         this.id = id;
         this.$ac_game = $('#' + id);

@@ -2,6 +2,7 @@
 export class AcGame {
     //通过是否有AcwingOS参数判断是否在是ACAPP中调用的
     constructor(id, AcWingOS) {
+        console.log(AcWingOS);
         //id：div的id
         this.id = id;
         this.$ac_game = $('#' + id);
