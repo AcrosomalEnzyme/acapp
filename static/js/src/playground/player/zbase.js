@@ -225,7 +225,7 @@ class Player extends AcGameObject {
         }
 
         //如果还受到伤害后退的影响，不能进行操控
-        if (this.damage_speed > 10)
+        if (this.damage_speed > this.eps)
         {
             //受到伤害过程中，速度清零
             this.vx = this.vy = 0;

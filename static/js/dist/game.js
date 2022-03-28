@@ -207,7 +207,7 @@ class Particle extends AcGameObject{
         this.speed = speed;
         this.move_length = move_length;
         this.friction = 0.9;
-        this.eps = 1;
+        this.eps = 0.01;
     }
 
     start()
@@ -233,8 +233,9 @@ class Particle extends AcGameObject{
 
     render()
     {
+        let scale = this.playground.scale;
         this.ctx.beginPath();
-        this.ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
+        this.ctx.arc(this.x * scale, this.y * scale, this.radius * scale, 0, Math.PI * 2, false);
         this.ctx.fillStyle = this.color;
         this.ctx.fill();
     }
@@ -466,7 +467,7 @@ class Player extends AcGameObject {
         }
 
         //如果还受到伤害后退的影响，不能进行操控
-        if (this.damage_speed > 10)
+        if (this.damage_speed > this.eps)
         {
             //受到伤害过程中，速度清零
             this.vx = this.vy = 0;
@@ -572,7 +573,7 @@ class FireBall extends AcGameObject
         this.speed = speed;
         this.move_length = move_length;
         this.damage = damage;
-        this.eps = 0.1;
+        this.eps = 0.01;
 
         //console.log("fireball: ",this.playground.players.length);
     }
@@ -648,9 +649,10 @@ class FireBall extends AcGameObject
 
     render()
     {
+        let scale = this.playground.scale;
         //与玩家类绘制相同，都是圆
         this.ctx.beginPath();
-        this.ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
+        this.ctx.arc(this.x * scale, this.y * scale, this.radius * scale, 0, Math.PI * 2, false);
         this.ctx.fillStyle = this.color;
         this.ctx.fill();
         //console.log("test");
