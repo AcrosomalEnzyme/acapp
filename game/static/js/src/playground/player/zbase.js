@@ -22,7 +22,7 @@ class Player extends AcGameObject {
         this.color = color;
         this.speed = speed;
         this.is_me = is_me;
-        //移动的时候涉及浮点运算，eps表示小于多少算0，设定为0.1；
+        //移动的时候涉及浮点运算，eps表示小于多少算0，设定为0.01；
         this.eps = 0.01;
         //判断被伤害攻击之后的阻尼
         this.friction = 0.9;
@@ -51,8 +51,8 @@ class Player extends AcGameObject {
         else
         {
             //为游戏随机一个目的地
-            let tx = Math.random() * this.playground.width;
-            let ty = Math.random() * this.playground.height;
+            let tx = Math.random() * this.playground.width / this.playground.scale;
+            let ty = Math.random() * this.playground.height / this.playground.scale;
             this.move_to(tx, ty);
 
         }
@@ -79,19 +79,20 @@ class Player extends AcGameObject {
             {
                 //调用外部的move_to函数并传入鼠标所在的位置
                 //需要求出相对的坐标
-                outer.move_to(e.clientX - rect.left, e.clientY - rect.top);
+                outer.move_to((e.clientX - rect.left) / outer.playground.scale, (e.clientY - rect.top) / outer.playground.scale);
             }
 
             //如果点击的是鼠标左键，表示即将发射技能
             //限制半径，确保玩家死亡后无法发射火球
-            else if (e.which === 1 && outer.radius > 10)
+            else if (e.which === 1 )
             {
                 //通过先前判断，技能选定为火球
                 if (outer.our_skill === "fireball")
                 {
                     //调用发射火球函数，传入鼠标点击位置坐标
                     //需要求出相对的坐标
-                    outer.shoot_fireball(e.clientX - rect.left, e.clientY - rect.top);
+                    console.log("shoot");
+                    outer.shoot_fireball((e.clientX - rect.left) / outer.playground.scale, (e.clientY - rect.top) / outer.playground.scale);
                 }
 
                 //释放完技能后要把当前技能置为空
@@ -116,17 +117,17 @@ class Player extends AcGameObject {
         //火球初始位置与玩家球中心点位置一样
         let x = this.x, y = this.y;
         //火球半径与界面半径相关，这样能确保显示效果一样
-        let radius = this.playground.height * 0.01;
+        let radius = 0.01;
         //确定一下角度
         let angle = Math.atan2(ty - this.y, tx - this.x);
         //确定运动的方向
         let vx = Math.cos(angle), vy = Math.sin(angle);
         let color = "orange";
-        let speed = this.playground.height * 0.5;
+        let speed = 0.5;
         //火球可以攻击的距离
-        let move_length = this.playground.height * 1;
+        let move_length = 1;
         //伤害值为高度值的0.01，每次可以打掉玩家百分之20的血量
-        let damage = this.playground.height * 0.01;
+        let damage = 0.01;
         //console.log("117make fireball: ",this.playground.players.length);
         new FireBall(this.playground, this, x, y, radius, vx, vy, color, speed, move_length, damage);
 
@@ -180,7 +181,7 @@ class Player extends AcGameObject {
         //玩家半径代表血量
         this.radius -= damage;
         //玩家半径低于10像素，该物体死亡，销毁object
-        if(this.radius < 10)
+        if(this.radius < this.eps)
         {
             this.destroy();
             //console.log("destroy");
@@ -199,6 +200,14 @@ class Player extends AcGameObject {
 
 
     update() {
+        this.update_move();
+        this.render();
+
+    }
+
+    //更新玩家移动
+    update_move()
+    {
         this.spent_time += this.timedelta;
         //平均每5秒钟发射一次火球。因为该函数秒调用60次，每5秒调用3000次，所以5秒中之内发射一枚炮弹
         //无敌时间为4000毫秒
@@ -240,8 +249,8 @@ class Player extends AcGameObject {
                 if(!this.is_me)
                 {
                     //console.log("test");
-                    let tx = Math.random() * this.playground.width;
-                    let ty = Math.random() * this.playground.height;
+                    let tx = Math.random() * this.playground.width / this.playground.scale;
+                    let ty = Math.random() * this.playground.height / this.playground.scale;
                     this.move_to(tx, ty);
                 }
             }
@@ -255,21 +264,20 @@ class Player extends AcGameObject {
                 this.move_length -= moved;
             }
         }
-        this.render();
-
     }
 
     render()
     {
+        let scale = this.playground.scale;
         //如果是自己，画头像
         if (this.is_me)
         {
             this.ctx.save();
             this.ctx.beginPath();
-            this.ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
+            this.ctx.arc(this.x * scale, this.y * scale, this.radius * scale, 0, Math.PI * 2, false);
             this.ctx.stroke();
             this.ctx.clip();
-            this.ctx.drawImage(this.img, this.x - this.radius, this.y - this.radius, this.radius * 2, this.radius * 2);
+            this.ctx.drawImage(this.img, (this.x - this.radius) * scale, (this.y - this.radius) * scale, this.radius * 2 * scale, this.radius * 2 * scale);
             this.ctx.restore();
         }
         //如果是电脑，画颜色
@@ -278,7 +286,7 @@ class Player extends AcGameObject {
             //画出一个圆
             this.ctx.beginPath();
             //起始坐标，半径，起始角度，是否顺时针
-            this.ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
+            this.ctx.arc(this.x * scale, this.y * scale, this.radius * scale, 0, Math.PI * 2, false);
             //颜色
             this.ctx.fillStyle = this.color;
             //把颜色填充进去

@@ -59,13 +59,13 @@ class AcGamePlayground {
         //添加玩家
         this.players = [];
         //绘制在画面中间
-        this.players.push(new Player(this, this.width / 2, this.height / 2, this.height * 0.05, "white", this.height * 0.15, true));
+        this.players.push(new Player(this, this.width / 2 / this.scale, 0.5, 0.05, "white", 0.15, true));
 
         //添加5个敌人
         for(let i = 0; i < 5; i ++ )
         {
             //添加敌人，不是自己，置为false
-            this.players.push(new Player(this, this.width / 2, this.height / 2, this.height * 0.05, this.get_random_color(), this.height * 0.15, false));
+            this.players.push(new Player(this, this.width / 2 / this.scale, 0.5, 0.05, this.get_random_color(), 0.15, false));
         }
     }
 
