@@ -163,13 +163,19 @@ class GameMap extends AcGameObject {
         this.ctx.canvas.width = this.playground.width;
         this.ctx.canvas.height = this.playground.height;
         this.playground.$playground.append(this.$canvas);
-        
-
-        
     }
 
     start() {
 
+    }
+
+    //地图随窗口大小变化
+    resize()
+    {
+        this.ctx.canvas.width = this.playground.width;
+        this.ctx.canvas.height = this.playground.height;
+        this.ctx.fillStyle = "rgba(0, 0, 0, 1)";
+        this.ctx.fillRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
     }
 
     update() {
@@ -179,7 +185,7 @@ class GameMap extends AcGameObject {
 
     render() {
         //背景颜色,半透明还能使小球移动有拖尾的效果
-        this.ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
+        this.ctx.fillStyle = "rgba(0, 0, 0, 0.2)";
         //左上坐标和右下坐标
         this.ctx.fillRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
     }
@@ -649,6 +655,8 @@ class AcGamePlayground {
         //加入到父对象之前要关掉，用hide
         this.hide();
 
+        this.root.$ac_game.append(this.$playground);
+
         this.start();
 
     }
@@ -663,12 +671,35 @@ class AcGamePlayground {
 
     start()
     {
+        let outer = this;
+        //表示窗口大小被改变即触发函数
+        $(window).resize(function(){
+            outer.resize();
+        });
+    }
+
+    //修改地图大小
+    resize()
+    {
+        this.width = this.$playground.width();
+        this.height = this.$playground.height();
+        //求单位长度，使长宽比为16:9
+        let unit = Math.min(this.width / 16, this.height / 9);
+        this.width = unit * 16;
+        this.height = unit * 9;
+        //高度设定为基准
+        this.scale = this.height;
+
+        if(this.game_map)
+            this.game_map.resize();
+
     }
 
 
     show() {
         this.$playground.show();
-        this.root.$ac_game.append(this.$playground);
+
+        this.resize();
 
         this.width = this.$playground.width();
         this.height = this.$playground.height();
@@ -1049,7 +1080,7 @@ class Settings
         this.$register.show();
     }
 
-    //
+    //在acapp端登录
     acapp_login(appid, redirect_uri, scope, state)
     {
         let outer = this;

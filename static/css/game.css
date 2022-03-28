@@ -185,3 +185,11 @@ transition：设定变化的时间实现平滑变化*/
     height:100%;
     user-select: none;
 }
+
+/*窗口变化的时候画布也居中*/
+.ac-game-playground > canvas {
+    position: relative;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}

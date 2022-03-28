@@ -5,6 +5,8 @@ class AcGamePlayground {
         //加入到父对象之前要关掉，用hide
         this.hide();
 
+        this.root.$ac_game.append(this.$playground);
+
         this.start();
 
     }
@@ -19,12 +21,35 @@ class AcGamePlayground {
 
     start()
     {
+        let outer = this;
+        //表示窗口大小被改变即触发函数
+        $(window).resize(function(){
+            outer.resize();
+        });
+    }
+
+    //修改地图大小
+    resize()
+    {
+        this.width = this.$playground.width();
+        this.height = this.$playground.height();
+        //求单位长度，使长宽比为16:9
+        let unit = Math.min(this.width / 16, this.height / 9);
+        this.width = unit * 16;
+        this.height = unit * 9;
+        //高度设定为基准
+        this.scale = this.height;
+
+        if(this.game_map)
+            this.game_map.resize();
+
     }
 
 
     show() {
         this.$playground.show();
-        this.root.$ac_game.append(this.$playground);
+
+        this.resize();
 
         this.width = this.$playground.width();
         this.height = this.$playground.height();
