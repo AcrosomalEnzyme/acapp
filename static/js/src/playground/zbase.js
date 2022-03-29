@@ -46,26 +46,46 @@ class AcGamePlayground {
     }
 
 
-    show() {
+    show(mode) {
+        let outer = this;
         this.$playground.show();
-
-        this.resize();
 
         this.width = this.$playground.width();
         this.height = this.$playground.height();
 
         //添加地图
         this.game_map = new GameMap(this);
+
+        this.resize();
+
         //添加玩家
         this.players = [];
         //绘制在画面中间
-        this.players.push(new Player(this, this.width / 2 / this.scale, 0.5, 0.05, "white", 0.15, true));
+        this.players.push(new Player(this, this.width / 2 / this.scale, 0.5, 0.05, "white", 0.15, "me", this.root.settings.username, this.root.settings.photo));
 
-        //添加5个敌人
-        for(let i = 0; i < 5; i ++ )
+        //如果是单人模式，添加机器人
+        if (mode === "single mode")
         {
-            //添加敌人，不是自己，置为false
-            this.players.push(new Player(this, this.width / 2 / this.scale, 0.5, 0.05, this.get_random_color(), 0.15, false));
+            //添加5个敌人
+            for(let i = 0; i < 5; i ++ )
+            {
+                //添加敌人，不是自己，置为false
+                this.players.push(new Player(this, this.width / 2 / this.scale, 0.5, 0.05, this.get_random_color(), 0.15, "robot"));
+            }
+        }
+        //如果是联机模式
+        else if (mode === "multi mode")
+        {
+            //创建ws连接
+            this.mps = new MultiPlayerSocket (this);
+
+            //创建连接后，给让mps的UUID等于自己窗口控制的player的UUID
+            this.mps.uuid = this.players[0].uuid;
+
+            //连接创建成功会调用该函数创建用户
+            this.mps.ws.onopen = function(){
+                outer.mps.send_create_player(outer.root.settings.username, outer.root.settings.photo);
+            };
         }
     }
 

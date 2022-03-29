@@ -1,9 +1,10 @@
 //玩家也是object
 class Player extends AcGameObject {
+
     //玩家的坐标，半径，颜色（后续开发可以把颜色换成头像），
     //每秒钟移动百分之多少，用高度的百分比，使得游戏公平
     //判断是不是自己
-    constructor(playground, x, y, radius, color, speed, is_me) {
+    constructor(playground, x, y, radius, color, speed, character, username, photo) {
         //调用基类的构造函数，实现每秒钟刷新60次
         super();
         this.playground = playground;
@@ -21,7 +22,9 @@ class Player extends AcGameObject {
         this.radius = radius;
         this.color = color;
         this.speed = speed;
-        this.is_me = is_me;
+        this.character = character;
+        this.username = username;
+        this.photo = photo;
         //移动的时候涉及浮点运算，eps表示小于多少算0，设定为0.01；
         this.eps = 0.01;
         //判断被伤害攻击之后的阻尼
@@ -32,23 +35,23 @@ class Player extends AcGameObject {
         this.our_skill = null;
 
         //定义图片，用来作为头像
-        //如果是自己才绘出头像
-        if(this.is_me)
+        //如果不是机器人绘出头像
+        if(this.character !== "robot")
         {
             this.img = new Image();
-            this.img.src = this.playground.root.settings.photo;
+            this.img.src = this.photo;
         }
     }
 
     start()
     {
         //只有玩家才绑定监听函数用于鼠标操控
-        if (this.is_me)
+        if (this.character === "me")
         {
             this.add_listening_events();
         }
         //如果不是玩家，是电脑敌人
-        else
+        else if (this.character === "robot")
         {
             //为游戏随机一个目的地
             let tx = Math.random() * this.playground.width / this.playground.scale;
@@ -212,7 +215,7 @@ class Player extends AcGameObject {
         //平均每5秒钟发射一次火球。因为该函数秒调用60次，每5秒调用3000次，所以5秒中之内发射一枚炮弹
         //无敌时间为4000毫秒
         //要注意判定不能自己也随机发射火球
-        if (!this.is_me && this.spent_time > 4000 && Math.random() < 1 / 300.0)
+        if (this.character === "robot" && this.spent_time > 4000 && Math.random() < 1 / 300.0)
         {
             //朝一个随机的敌人发射炮弹
             //to do:解方程，预测玩家位置，往目标位置发射，先实现简易的
@@ -246,7 +249,7 @@ class Player extends AcGameObject {
                 //速度置为0
                 this.vx = this.vy = 0;
                 //还需要进行判定，不是玩家的话，不进行销毁，而是重新随机一个目标地点再移动
-                if(!this.is_me)
+                if(this.character === "robot")
                 {
                     //console.log("test");
                     let tx = Math.random() * this.playground.width / this.playground.scale;
@@ -269,8 +272,8 @@ class Player extends AcGameObject {
     render()
     {
         let scale = this.playground.scale;
-        //如果是自己，画头像
-        if (this.is_me)
+        //如果不是机器人，画头像
+        if (this.character !== "robot")
         {
             this.ctx.save();
             this.ctx.beginPath();

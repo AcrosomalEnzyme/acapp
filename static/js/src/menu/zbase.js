@@ -48,17 +48,17 @@ class AcGameMenu {
             //先将当前对象关闭，再打开游戏界面
             outer.hide();
             //root作用体现了，root包含了playground
-            outer.root.playground.show();
+            outer.root.playground.show("single mode");
         });
 
         //点击多人模式按钮时
         this.$multi_mode.click(function(){
-            console.log("click multi mode");
+            outer.hide();
+            outer.root.playground.show("multi mode");
         });
 
         //点击设置按钮时
         this.$settings.click(function(){
-            console.log("click settings");
             outer.root.settings.logout_on_remote();
         });
     }

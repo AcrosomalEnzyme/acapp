@@ -6,6 +6,21 @@ class AcGameObject {
 
         this.has_called_start = false; //是否执行过start函数
         this.timedelta = 0; //当前帧距离上一帧的时间间隔，不同浏览器不一定每秒钟调用 requestAnimationFrame(AC_GAME_ANIMATION); 60次数。为了方便统一速度
+        this.uuid = this.create_uuid();//创建唯一编号
+    }
+
+    //创建唯一编号，用于联机使用
+    //使用随机的八位数
+    create_uuid()
+    {
+        let res = "";
+        for ( let i = 0; i < 8; i ++)
+        {
+            //返回[0,1)之间的数
+            let num = parseInt(Math.floor(Math.random() * 10));
+            res += num;
+        }
+        return res;
     }
 
     //只会在第一帧执行一次

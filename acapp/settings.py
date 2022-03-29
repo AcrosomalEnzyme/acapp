@@ -39,6 +39,7 @@ ALLOWED_HOSTS = ["175.178.119.52","127.0.0.1","app1881.acapp.acwing.com.cn"]
 # 'game.apps.GameConfig',
 # 对数据库有影响
 INSTALLED_APPS = [
+    'channels',
     'game.apps.GameConfig',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -148,3 +149,17 @@ MEDIA_URL = '/media/'
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+ASGI_APPLICATION = 'acapp.asgi.application'
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [("127.0.0.1", 6379)],
+        },
+    },
+}
+
+#设定每个游戏房间的容量
+ROOM_CAPACITY = 3
