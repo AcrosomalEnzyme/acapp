@@ -56,6 +56,8 @@ class AcGamePlayground {
         //添加地图
         this.game_map = new GameMap(this);
 
+        this.mode = mode;
+
         this.resize();
 
         //添加玩家

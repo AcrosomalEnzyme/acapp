@@ -24,19 +24,25 @@ class MultiPlayerSocket {
             let uuid = data.uuid;
             //如果是自己发送的广播，就不需要接收
             if(uuid === outer.uuid)
-            {
-                console.log("me");
                 return false;
-            }
-
-            //console.log("create player");
 
             let event = data.event;
+            //如果接收到创建player
             if(event === "create_player")
             {
                 outer.receive_create_player(uuid, data.username, data.photo);
             }
-            //console.log(data);
+            //如果接收到移动位置
+            else if (event === "move_to")
+            {
+                outer.receive_move_to(uuid, data.tx, data.ty);
+            }
+            //如果接收到发射火球
+            else if (event === "shoot_fireball")
+            {
+                //console.log("receive", outer.uuid, data.uuid);
+                outer.receive_shoot_fireball(uuid, data.tx, data.ty, data.ball_uuid);
+            }
         };
     }
 
@@ -63,7 +69,7 @@ class MultiPlayerSocket {
             this.playground.width / 2 / this.playground.scale,
             0.5,
             0.05,
-            "scale",
+            "white",
             0.15,
             "enemy",
             username,
@@ -72,17 +78,89 @@ class MultiPlayerSocket {
 
         player.uuid = uuid;
         this.playground.players.push(player);
+        //console.log(this.playground.players.length);
     }
 
+    //根据UUID找到对应的玩家
+    get_player(uuid)
+    {
+        let players = this.playground.players;
+        for (let i = 0; i < players.length; i ++)
+        {
+            let player = players[i];
+            if (player.uuid === uuid)
+            {
+                return player;
+            }
+        }
 
+        return null;
+    }
 
+    //广播发送移动的目的地坐标信息
+    send_move_to(tx, ty)
+    {
+        let outer = this;
+        this.ws.send(JSON.stringify({
+            'event': "move_to",
+            'uuid': outer.uuid,
+            'tx': tx,
+            'ty': ty,
+        }));
+    }
 
+    //接收广播发送移动的目的地坐标信息
+    receive_move_to(uuid, tx, ty)
+    {
+        //找到对应的玩家
+        let player = this.get_player(uuid);
+        //玩家存在，将其移动到目的地
+        if(player)
+        {
+            player.move_to(tx, ty);
+        }
+    }
 
+    //发送发射火球的信息
+    send_shoot_fireball(tx, ty, ball_uuid)
+    {
+        let outer = this;
+        this.ws.send(JSON.stringify({
+            'event': "shoot_fireball",
+            //本窗口玩家的UUID，用于判定击中
+            'uuid': outer.uuid,
+            'tx': tx,
+            'ty': ty,
+            'ball_uuid': ball_uuid,
+        }));
+    }
 
+    //接收其他玩家发射火球的消息
+    receive_shoot_fireball(uuid, tx, ty, ball_uuid)
+    {
+        //console.log(uuid,tx,ty);
+        let player = this.get_player(uuid);
+        if (player)
+        {
+            //记录传下来的火球和对应的UUID
+            let fireball = player.shoot_fireball(tx, ty);
+            fireball.uuid = ball_uuid;
+        }
+    }
 
-
-
-
+    //删除火球
+    destroy_fireball(uuid)
+    {
+        for (let i = 0; i < this.fireballs.length; i ++)
+        {
+            let fireball = this.fireball[i];
+            if (fireball.uuid === uuid)
+            {
+                fireball.destroy();
+                break;
+            }
+        }
+    }
 
 
 

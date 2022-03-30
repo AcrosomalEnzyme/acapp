@@ -291,6 +291,9 @@ class Player extends AcGameObject {
         //判断是否选了技能
         this.our_skill = null;
 
+        //联机的时候子弹会消失，需要记录
+        this.fireballs = [];
+
         //定义图片，用来作为头像
         //如果不是机器人绘出头像
         if(this.character !== "robot")
@@ -337,22 +340,40 @@ class Player extends AcGameObject {
             //如果点击的是鼠标右键
             if (e.which === 3)
             {
+                let tx = (e.clientX - rect.left) / outer.playground.scale;
+                let ty = (e.clientY - rect.top) / outer.playground.scale;
                 //调用外部的move_to函数并传入鼠标所在的位置
                 //需要求出相对的坐标
-                outer.move_to((e.clientX - rect.left) / outer.playground.scale, (e.clientY - rect.top) / outer.playground.scale);
+                outer.move_to(tx, ty);
+
+                //如果是多人模式，要将移动位置进行广播
+                if (outer.playground.mode === "multi mode")
+                {
+                    outer.playground.mps.send_move_to(tx, ty);
+                }
             }
 
             //如果点击的是鼠标左键，表示即将发射技能
             //限制半径，确保玩家死亡后无法发射火球
             else if (e.which === 1 )
             {
+                //传入鼠标点击位置坐标
+                //需要求出相对的坐标
+                let tx = (e.clientX - rect.left) / outer.playground.scale;
+                let ty = (e.clientY - rect.top) / outer.playground.scale;
                 //通过先前判断，技能选定为火球
                 if (outer.our_skill === "fireball")
                 {
-                    //调用发射火球函数，传入鼠标点击位置坐标
-                    //需要求出相对的坐标
-                    console.log("shoot");
-                    outer.shoot_fireball((e.clientX - rect.left) / outer.playground.scale, (e.clientY - rect.top) / outer.playground.scale);
+                    //调用发射火球函数
+                    let fireball = outer.shoot_fireball(tx, ty);
+
+                    //console.log(this.playground.players.length);
+                    //如果是多人模式需要传递火球信息
+                    if(outer.playground.mode === "multi mode")
+                    {
+                        outer.playground.mps.send_shoot_fireball(tx, ty, fireball.uuid);
+                    }
+
                 }
 
                 //释放完技能后要把当前技能置为空
@@ -389,9 +410,11 @@ class Player extends AcGameObject {
         //伤害值为高度值的0.01，每次可以打掉玩家百分之20的血量
         let damage = 0.01;
         //console.log("117make fireball: ",this.playground.players.length);
-        new FireBall(this.playground, this, x, y, radius, vx, vy, color, speed, move_length, damage);
+        let fireball = new FireBall(this.playground, this, x, y, radius, vx, vy, color, speed, move_length, damage);
+        //存下火球，用于联机同步使用
+        this.fireballs.push(fireball);
 
-
+        return fireball;
     }
 
 
@@ -422,6 +445,7 @@ class Player extends AcGameObject {
        //添加粒子效果，生成粒子可以5-15个之间随机
         for (let i = 0; i < 10 + Math.random() * 10; i ++)
         {
+            //console.log(this.color);
             //从中心炸开
             let x = this.x, y = this.y;
             //生成的粒子大小与当前球的大小有关
@@ -498,6 +522,7 @@ class Player extends AcGameObject {
         }
         else
         {
+                    //需要求出相对的坐标
             //console.log(1,this.move_length , this.eps);
             //当需要移动的距离小于临界值时
             if (this.move_length < this.eps)
@@ -563,6 +588,7 @@ class Player extends AcGameObject {
             if (this.playground.players[i] === this)
             {
                 this.playground.players.splice(i, 1);
+                break;
             }
         }
         //console.log(this.playground.players.length);
@@ -605,32 +631,47 @@ class FireBall extends AcGameObject
         //移动距离为0时，火球消失
         if(this.move_length < this.eps)
         {
-            //console.log("test");
             this.destroy();
             return false;
         }
 
+        this.update_move();
+        this.update_attack();
+
+        this.render();
+    }
+
+    //处理火球移动函数
+    update_move()
+    {
         //火球进行移动
         let moved = Math.min(this.move_length, this.speed * this.timedelta / 1000);
         this.x += this.vx * moved;
         this.y += this.vy * moved;
         this.move_length -= moved;
+    }
 
+    //处理火球攻击函数
+    update_attack()
+    {
+        //console.log("attack it");
         //to do:火球碰撞抵消效果
 
         //对每一个物体进行碰撞检测
         for (let i = 0; i < this.playground.players.length; i ++ )
         {
             let player = this.playground.players[i];
+            //console.log(player);
+            //console.log(this.player);
             //两个玩家不相等，并且两个玩家发生碰撞了,执行攻击函数
             if (this.player !== player && this.is_collision(player) )
             {
+                //console.log("attack it");
                 //攻击另一个玩家
                 this.attack(player);
+                break;
             }
         }
-
-        this.render();
     }
 
     //写求距离函数，后期应该优化写成基类，作为工具类
@@ -675,6 +716,20 @@ class FireBall extends AcGameObject
         this.ctx.fill();
         //console.log("test");
     }
+
+    //火球删除时，还需要从player类中fireballs里面删除
+    on_destroy()
+    {
+        let fireballs = this.player.fireballs;
+        for(let i = 0; i < fireballs.length; i ++ )
+        {
+            if (fireballs[i] === this)
+            {
+                fireballs.splice(i, 1);
+                break;
+            }
+        }
+    }
 }
 class MultiPlayerSocket {
     constructor(playground) {
@@ -702,19 +757,25 @@ class MultiPlayerSocket {
             let uuid = data.uuid;
             //如果是自己发送的广播，就不需要接收
             if(uuid === outer.uuid)
-            {
-                console.log("me");
                 return false;
-            }
-
-            //console.log("create player");
 
             let event = data.event;
+            //如果接收到创建player
             if(event === "create_player")
             {
                 outer.receive_create_player(uuid, data.username, data.photo);
             }
-            //console.log(data);
+            //如果接收到移动位置
+            else if (event === "move_to")
+            {
+                outer.receive_move_to(uuid, data.tx, data.ty);
+            }
+            //如果接收到发射火球
+            else if (event === "shoot_fireball")
+            {
+                //console.log("receive", outer.uuid, data.uuid);
+                outer.receive_shoot_fireball(uuid, data.tx, data.ty, data.ball_uuid);
+            }
         };
     }
 
@@ -741,7 +802,7 @@ class MultiPlayerSocket {
             this.playground.width / 2 / this.playground.scale,
             0.5,
             0.05,
-            "scale",
+            "white",
             0.15,
             "enemy",
             username,
@@ -750,17 +811,89 @@ class MultiPlayerSocket {
 
         player.uuid = uuid;
         this.playground.players.push(player);
+        //console.log(this.playground.players.length);
     }
 
+    //根据UUID找到对应的玩家
+    get_player(uuid)
+    {
+        let players = this.playground.players;
+        for (let i = 0; i < players.length; i ++)
+        {
+            let player = players[i];
+            if (player.uuid === uuid)
+            {
+                return player;
+            }
+        }
 
+        return null;
+    }
 
+    //广播发送移动的目的地坐标信息
+    send_move_to(tx, ty)
+    {
+        let outer = this;
+        this.ws.send(JSON.stringify({
+            'event': "move_to",
+            'uuid': outer.uuid,
+            'tx': tx,
+            'ty': ty,
+        }));
+    }
 
+    //接收广播发送移动的目的地坐标信息
+    receive_move_to(uuid, tx, ty)
+    {
+        //找到对应的玩家
+        let player = this.get_player(uuid);
+        //玩家存在，将其移动到目的地
+        if(player)
+        {
+            player.move_to(tx, ty);
+        }
+    }
 
+    //发送发射火球的信息
+    send_shoot_fireball(tx, ty, ball_uuid)
+    {
+        let outer = this;
+        this.ws.send(JSON.stringify({
+            'event': "shoot_fireball",
+            //本窗口玩家的UUID，用于判定击中
+            'uuid': outer.uuid,
+            'tx': tx,
+            'ty': ty,
+            'ball_uuid': ball_uuid,
+        }));
+    }
 
+    //接收其他玩家发射火球的消息
+    receive_shoot_fireball(uuid, tx, ty, ball_uuid)
+    {
+        //console.log(uuid,tx,ty);
+        let player = this.get_player(uuid);
+        if (player)
+        {
+            //记录传下来的火球和对应的UUID
+            let fireball = player.shoot_fireball(tx, ty);
+            fireball.uuid = ball_uuid;
+        }
+    }
 
-
-
-
+    //删除火球
+    destroy_fireball(uuid)
+    {
+        for (let i = 0; i < this.fireballs.length; i ++)
+        {
+            let fireball = this.fireball[i];
+            if (fireball.uuid === uuid)
+            {
+                fireball.destroy();
+                break;
+            }
+        }
+    }
 
 
 
@@ -985,6 +1118,8 @@ class AcGamePlayground {
 
         //添加地图
         this.game_map = new GameMap(this);
+
+        this.mode = mode;
 
         this.resize();
 
@@ -1268,7 +1403,7 @@ class Settings
             url: "https://app1881.acapp.acwing.com.cn/settings/acwing/web/apply_code/",
             type: "GET",
             success: function(res){
-                console.log(res);
+                //console.log(res);
                 if (res.result === "success")
                 {
                     window.location.replace(res.apply_code_url);
@@ -1297,7 +1432,7 @@ class Settings
                 password: password,
             },
             success: function(res){
-                console.log(res);
+                //console.log(res);
                 if (res.result === "success")
                 {
                     //登录成功就刷新网页，
@@ -1322,8 +1457,8 @@ class Settings
         let password_confirm = this.$register_password_confirm.val();
         this.$register_error_message.empty();
 
-        console.log(password);
-        console.log(password_confirm);
+        //console.log(password);
+        //console.log(password_confirm);
 
         $.ajax({
             url: "https://app1881.acapp.acwing.com.cn/settings/register/",
@@ -1351,19 +1486,24 @@ class Settings
     logout_on_remote()
     {
         //如果登录平台是ACAPP，不执行接下来的操作
-        if (this.platform === "ACAPP") return false;
-
-        $.ajax({
-            url: "https://app1881.acapp.acwing.com.cn/settings/logout/",
-            type: "GET",
-            success: function(res){
-                console.log(res);
-                if (res.result === "success")
-                {
-                    location.reload();
+        if (this.platform === "ACAPP")
+        {
+            this.root.AcWingOS.api.window.close();
+        }
+        else
+        {
+            $.ajax({
+                url: "https://app1881.acapp.acwing.com.cn/settings/logout/",
+                type: "GET",
+                success: function(res){
+                    //console.log(res);
+                    if (res.result === "success")
+                    {
+                        location.reload();
+                    }
                 }
-            }
-        });
+            });
+        }
     }
 
     //打开登录界面
@@ -1385,7 +1525,7 @@ class Settings
     {
         let outer = this;
         this.root.AcWingOS.api.oauth2.authorize(appid, redirect_uri, scope, state, function(res){
-            console.log(res);
+            //console.log(res);
             if (res.result === "success")
             {
                 outer.username = res.username;
@@ -1428,7 +1568,7 @@ class Settings
             },
             success: function(res)
             {
-                console.log(res);
+                //console.log(res);
                 if(res.result === "success")
                 {
                     //记录传回来的用户名称和头像
@@ -1462,7 +1602,7 @@ class Settings
 export class AcGame {
     //通过是否有AcwingOS参数判断是否在是ACAPP中调用的
     constructor(id, AcWingOS) {
-        console.log(AcWingOS);
+        //console.log(AcWingOS);
         //id：div的id
         this.id = id;
         this.$ac_game = $('#' + id);

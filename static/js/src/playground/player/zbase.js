@@ -34,6 +34,9 @@ class Player extends AcGameObject {
         //判断是否选了技能
         this.our_skill = null;
 
+        //联机的时候子弹会消失，需要记录
+        this.fireballs = [];
+
         //定义图片，用来作为头像
         //如果不是机器人绘出头像
         if(this.character !== "robot")
@@ -80,22 +83,40 @@ class Player extends AcGameObject {
             //如果点击的是鼠标右键
             if (e.which === 3)
             {
+                let tx = (e.clientX - rect.left) / outer.playground.scale;
+                let ty = (e.clientY - rect.top) / outer.playground.scale;
                 //调用外部的move_to函数并传入鼠标所在的位置
                 //需要求出相对的坐标
-                outer.move_to((e.clientX - rect.left) / outer.playground.scale, (e.clientY - rect.top) / outer.playground.scale);
+                outer.move_to(tx, ty);
+
+                //如果是多人模式，要将移动位置进行广播
+                if (outer.playground.mode === "multi mode")
+                {
+                    outer.playground.mps.send_move_to(tx, ty);
+                }
             }
 
             //如果点击的是鼠标左键，表示即将发射技能
             //限制半径，确保玩家死亡后无法发射火球
             else if (e.which === 1 )
             {
+                //传入鼠标点击位置坐标
+                //需要求出相对的坐标
+                let tx = (e.clientX - rect.left) / outer.playground.scale;
+                let ty = (e.clientY - rect.top) / outer.playground.scale;
                 //通过先前判断，技能选定为火球
                 if (outer.our_skill === "fireball")
                 {
-                    //调用发射火球函数，传入鼠标点击位置坐标
-                    //需要求出相对的坐标
-                    console.log("shoot");
-                    outer.shoot_fireball((e.clientX - rect.left) / outer.playground.scale, (e.clientY - rect.top) / outer.playground.scale);
+                    //调用发射火球函数
+                    let fireball = outer.shoot_fireball(tx, ty);
+
+                    //console.log(this.playground.players.length);
+                    //如果是多人模式需要传递火球信息
+                    if(outer.playground.mode === "multi mode")
+                    {
+                        outer.playground.mps.send_shoot_fireball(tx, ty, fireball.uuid);
+                    }
+
                 }
 
                 //释放完技能后要把当前技能置为空
@@ -132,9 +153,11 @@ class Player extends AcGameObject {
         //伤害值为高度值的0.01，每次可以打掉玩家百分之20的血量
         let damage = 0.01;
         //console.log("117make fireball: ",this.playground.players.length);
-        new FireBall(this.playground, this, x, y, radius, vx, vy, color, speed, move_length, damage);
+        let fireball = new FireBall(this.playground, this, x, y, radius, vx, vy, color, speed, move_length, damage);
+        //存下火球，用于联机同步使用
+        this.fireballs.push(fireball);
 
-
+        return fireball;
     }
 
 
@@ -165,6 +188,7 @@ class Player extends AcGameObject {
        //添加粒子效果，生成粒子可以5-15个之间随机
         for (let i = 0; i < 10 + Math.random() * 10; i ++)
         {
+            //console.log(this.color);
             //从中心炸开
             let x = this.x, y = this.y;
             //生成的粒子大小与当前球的大小有关
@@ -241,6 +265,7 @@ class Player extends AcGameObject {
         }
         else
         {
+                    //需要求出相对的坐标
             //console.log(1,this.move_length , this.eps);
             //当需要移动的距离小于临界值时
             if (this.move_length < this.eps)
@@ -306,6 +331,7 @@ class Player extends AcGameObject {
             if (this.playground.players[i] === this)
             {
                 this.playground.players.splice(i, 1);
+                break;
             }
         }
         //console.log(this.playground.players.length);

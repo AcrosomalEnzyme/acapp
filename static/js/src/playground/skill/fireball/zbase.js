@@ -35,32 +35,47 @@ class FireBall extends AcGameObject
         //移动距离为0时，火球消失
         if(this.move_length < this.eps)
         {
-            //console.log("test");
             this.destroy();
             return false;
         }
 
+        this.update_move();
+        this.update_attack();
+
+        this.render();
+    }
+
+    //处理火球移动函数
+    update_move()
+    {
         //火球进行移动
         let moved = Math.min(this.move_length, this.speed * this.timedelta / 1000);
         this.x += this.vx * moved;
         this.y += this.vy * moved;
         this.move_length -= moved;
+    }
 
+    //处理火球攻击函数
+    update_attack()
+    {
+        //console.log("attack it");
         //to do:火球碰撞抵消效果
 
         //对每一个物体进行碰撞检测
         for (let i = 0; i < this.playground.players.length; i ++ )
         {
             let player = this.playground.players[i];
+            //console.log(player);
+            //console.log(this.player);
             //两个玩家不相等，并且两个玩家发生碰撞了,执行攻击函数
             if (this.player !== player && this.is_collision(player) )
             {
+                //console.log("attack it");
                 //攻击另一个玩家
                 this.attack(player);
+                break;
             }
         }
-
-        this.render();
     }
 
     //写求距离函数，后期应该优化写成基类，作为工具类
@@ -104,5 +119,19 @@ class FireBall extends AcGameObject
         this.ctx.fillStyle = this.color;
         this.ctx.fill();
         //console.log("test");
+    }
+
+    //火球删除时，还需要从player类中fireballs里面删除
+    on_destroy()
+    {
+        let fireballs = this.player.fireballs;
+        for(let i = 0; i < fireballs.length; i ++ )
+        {
+            if (fireballs[i] === this)
+            {
+                fireballs.splice(i, 1);
+                break;
+            }
+        }
     }
 }

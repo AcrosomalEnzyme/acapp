@@ -228,7 +228,7 @@ class Settings
             url: "https://app1881.acapp.acwing.com.cn/settings/acwing/web/apply_code/",
             type: "GET",
             success: function(res){
-                console.log(res);
+                //console.log(res);
                 if (res.result === "success")
                 {
                     window.location.replace(res.apply_code_url);
@@ -257,7 +257,7 @@ class Settings
                 password: password,
             },
             success: function(res){
-                console.log(res);
+                //console.log(res);
                 if (res.result === "success")
                 {
                     //登录成功就刷新网页，
@@ -282,8 +282,8 @@ class Settings
         let password_confirm = this.$register_password_confirm.val();
         this.$register_error_message.empty();
 
-        console.log(password);
-        console.log(password_confirm);
+        //console.log(password);
+        //console.log(password_confirm);
 
         $.ajax({
             url: "https://app1881.acapp.acwing.com.cn/settings/register/",
@@ -311,19 +311,24 @@ class Settings
     logout_on_remote()
     {
         //如果登录平台是ACAPP，不执行接下来的操作
-        if (this.platform === "ACAPP") return false;
-
-        $.ajax({
-            url: "https://app1881.acapp.acwing.com.cn/settings/logout/",
-            type: "GET",
-            success: function(res){
-                console.log(res);
-                if (res.result === "success")
-                {
-                    location.reload();
+        if (this.platform === "ACAPP")
+        {
+            this.root.AcWingOS.api.window.close();
+        }
+        else
+        {
+            $.ajax({
+                url: "https://app1881.acapp.acwing.com.cn/settings/logout/",
+                type: "GET",
+                success: function(res){
+                    //console.log(res);
+                    if (res.result === "success")
+                    {
+                        location.reload();
+                    }
                 }
-            }
-        });
+            });
+        }
     }
 
     //打开登录界面
@@ -340,12 +345,12 @@ class Settings
         this.$register.show();
     }
 
-    //
+    //在acapp端登录
     acapp_login(appid, redirect_uri, scope, state)
     {
         let outer = this;
         this.root.AcWingOS.api.oauth2.authorize(appid, redirect_uri, scope, state, function(res){
-            console.log(res);
+            //console.log(res);
             if (res.result === "success")
             {
                 outer.username = res.username;
@@ -388,7 +393,7 @@ class Settings
             },
             success: function(res)
             {
-                console.log(res);
+                //console.log(res);
                 if(res.result === "success")
                 {
                     //记录传回来的用户名称和头像
