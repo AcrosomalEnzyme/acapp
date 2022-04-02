@@ -55,8 +55,13 @@ class AcGamePlayground {
 
         //添加地图
         this.game_map = new GameMap(this);
-
+        //游戏模式
         this.mode = mode;
+        //游戏的状态
+        //房间未满是waiting，人满是fighting，游戏结束是over
+        this.state = "waiting";
+        this.notice_board = new NoticeBoard(this);
+        this.player_count = 0;
 
         this.resize();
 

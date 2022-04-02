@@ -40,7 +40,12 @@ class FireBall extends AcGameObject
         }
 
         this.update_move();
-        this.update_attack();
+
+        //如果不是敌人才判断碰撞
+        if(this.player.character !== "enemy")
+        {
+            this.update_attack();
+        }
 
         this.render();
     }
@@ -58,7 +63,6 @@ class FireBall extends AcGameObject
     //处理火球攻击函数
     update_attack()
     {
-        //console.log("attack it");
         //to do:火球碰撞抵消效果
 
         //对每一个物体进行碰撞检测
@@ -103,6 +107,13 @@ class FireBall extends AcGameObject
         let angle = Math.atan2(player.y - this.y, player.x - this.x);
         //调用player类的被攻击的函数，传入角度和伤害大小数值，执行攻击效果
         player.is_attacked(angle, this.damage);
+
+        //在多人模式，需要广播攻击的信息
+        if (this.playground.mode === "multi mode")
+        {
+            this. playground.mps.send_attack(player.uuid, player.x, player.y, angle, this.damage, this.uuid);
+        }
+
         //被击中后，火球要消失
         this.destroy();
         //console.log("destroy");

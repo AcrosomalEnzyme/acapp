@@ -24,10 +24,7 @@ class MultiPlayer(AsyncWebsocketConsumer):
 
         self.room_name = None
 
-        #调试专用
         start = 0
-        if data['username'] != "admin":
-            start = 1000
 
         #枚举有几个房间
         for i in range(start,10000):
@@ -118,6 +115,36 @@ class MultiPlayer(AsyncWebsocketConsumer):
             }
         )
 
+    #群发给对手玩家造成了伤害的消息
+    async def attack(self, data):
+        await self.channel_layer.group_send(
+            self.room_name,
+            {
+                'type': "group_send_event",
+                'event': "attack",
+                'uuid': data['uuid'],
+                'attackee_uuid': data['attackee_uuid'],
+                'x': data['x'],
+                'y': data['y'],
+                'angle': data['angle'],
+                'damage':data['damage'],
+                'ball_uuid': data['ball_uuid'],
+            }
+        )
+
+
+    #群发给对手闪现的位置
+    async def blink(self, data):
+        await self.channel_layer.group_send(
+            self.room_name,
+            {
+                'type': "group_send_event",
+                'event': "blink",
+                'uuid': data['uuid'],
+                'tx': data['tx'],
+                'ty': data['ty'],
+            }
+        )
 
     #前端发送的请求会由该函数处理
     async def receive(self, text_data):
@@ -129,5 +156,9 @@ class MultiPlayer(AsyncWebsocketConsumer):
             await self.create_player(data)
         elif event == "move_to":
             await self.move_to(data)
-        elif event =="shoot_fireball":
-            await self.shoot_fireball(data);
+        elif event == "shoot_fireball":
+            await self.shoot_fireball(data)
+        elif event == "attack":
+            await self.attack(data)
+        elif event == "blink":
+            await self.blink(data)
