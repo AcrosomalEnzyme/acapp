@@ -83,6 +83,9 @@ class AcGamePlayground {
         //如果是联机模式
         else if (mode === "multi mode")
         {
+            //创建聊天功能的实例
+            this.chat_field = new ChatField(this);
+
             //创建ws连接
             this.mps = new MultiPlayerSocket (this);
 

@@ -165,6 +165,116 @@ let AC_GAME_ANIMATION = function(timestamp)
 
 //一秒钟调用60次
 requestAnimationFrame(AC_GAME_ANIMATION);
+class ChatField
+{
+    constructor(playground)
+    {
+        this.playground = playground;
+
+        //历史记录和输入框
+        this.$history = $(`<div class="ac-game-chat-field-history">test</div>`);
+        this.$input = $(`<input type="text" class="ac-game-chat-field-input">`);
+
+        this.$history.hide();
+        this.$input.hide();
+
+        this.playground.$playground.append(this.$history);
+        this.playground.$playground.append(this.$input);
+
+        this.func_id = null;
+
+        this.start();
+    }
+
+    start()
+    {
+        this.add_listening_events();
+    }
+
+    //添加监听函数，防止打开聊天框之后因为focus在canvas
+    //按esc没有反应
+    add_listening_events()
+    {
+        let outer = this;
+
+        this.$input.keydown(function(e){
+            //如果是esc键
+            if (e.which === 27)
+            {
+                outer.hide_input();
+                return false;
+            }
+            //如果是回车键，发送消息
+            else if (e.which === 13)
+            {
+                let username = outer.playground.root.settings.username;
+                let text = outer.$input.val();
+                //如果输入的信息不为空
+                if (text)
+                {
+                    //清空消息框
+                    outer.$input.val("");
+                    outer.add_message(username, text);
+                    //将聊天内容发送给其他玩家
+                    outer.playground.mps.send_message(username, text);
+                }
+            }
+        });
+    }
+
+    //渲染信息
+    render_message(message)
+    {
+        return $(`<div>${message}</div>`);
+    }
+
+    //在历史记录中添加信息
+    add_message(username, text)
+    {
+        this.show_history();
+        //JavaScript的字符串拼接方式
+        let message = `[${username}]${text}`;
+        this.$history.append(this.render_message(message));
+        //每次使历史记录滚动至最底部
+        this.$history.scrollTop(this.$history[0].scrollHeight);
+    }
+
+    //展示历史记录
+    show_history()
+    {
+        let outer = this;
+        //历史记录是渐入式
+        this.$history.fadeIn();
+
+        if (this.func_id)
+            clearTimeout(this.func_id);
+
+        //三秒钟后自动关闭
+        this.func_id = setTimeout(function(){
+            outer.$history.fadeOut();
+            outer.func_id = null;
+        }, 3000);
+    }
+
+
+
+    //显示输入框
+    show_input()
+    {
+        this.show_history();
+        this.$input.show();
+        //聚焦之后才能输入内容
+        this.$input.focus();
+    }
+
+    //关闭输入框
+    hide_input()
+    {
+        this.$input.hide();
+        //隐藏后要将重新聚焦至地图上
+        this.playground.game_map.$canvas.focus();
+    }
+}
 //GameMap是AcGameObject的派生类
 class GameMap extends AcGameObject {
     constructor(playground) {
@@ -172,7 +282,7 @@ class GameMap extends AcGameObject {
         super();
         this.playground = playground;
         //点一定要标对`
-        this.$canvas = $(`<canvas></canvas>`);
+        this.$canvas = $(`<canvas tabindex=0></canvas>`);
         //接下来操作的是context，这是2D的画布
         this.ctx = this.$canvas[0].getContext('2d');
         this.ctx.canvas.width = this.playground.width;
@@ -181,6 +291,7 @@ class GameMap extends AcGameObject {
     }
 
     start() {
+        this.$canvas.focus();
 
     }
 
@@ -322,6 +433,7 @@ class Player extends AcGameObject {
         this.friction = 0.9;
         //设置游戏无敌时间
         this.spent_time = 0;
+        //绘画火球技能
         //判断是否选了技能
         this.our_skill = null;
 
@@ -342,6 +454,7 @@ class Player extends AcGameObject {
             //发射火球技能
             this.fireball_coldtime = 3;
             this.fireball_img = new Image();
+        //绘画火球技能
             this.fireball_img.src = "https://app1881.acapp.acwing.com.cn/static/image/fireball.png";
 
             //闪现技能
@@ -394,9 +507,11 @@ class Player extends AcGameObject {
         //读取右键点击的时候鼠标的坐标
         this.playground.game_map.$canvas.mousedown(function(e){
 
+            
+
             //如果游戏没有进入战斗状态，直接返回
             if(outer.playground.state !== "fighting")
-                return false;
+                return true;
 
             //定义一个常量，记录整个屏幕的坐标
             const rect = outer.ctx.canvas.getBoundingClientRect();
@@ -463,7 +578,30 @@ class Player extends AcGameObject {
         });
 
         //获取键盘事件，canvas不能聚焦，用window获取，查keycode就行
-        $(window).keydown(function(e){
+        this.playground.game_map.$canvas.keydown(function(e){
+
+            //添加聊天的绑定
+            //回车键是13，esc键是27
+            //按下回车，打开聊天框
+            if (e.which === 13)
+            {
+                //console.log("test");
+                if (outer.playground.mode === "multi mode")
+                {
+                    //console.log("test2");
+                    outer.playground.chat_field.show_input();
+                    return false;
+                }
+            }
+            //按下esc键，退出聊天框
+            else if (e.which === 27)
+            {
+                if (outer.playground.mode === "multi mode")
+                {
+                    outer.playground.chat_field.hide_input();
+                    return false;
+                }
+            }
 
             //如果游戏没有进入战斗状态，直接返回
             if(outer.playground.state !== "fighting")
@@ -488,6 +626,7 @@ class Player extends AcGameObject {
                 outer.our_skill = "blink";
                 return false;
             }
+
         });
     }
 
@@ -1013,6 +1152,10 @@ class MultiPlayerSocket {
             {
                 outer.receive_blink(uuid, data.tx, data.ty);
             }
+            else if (event === "message")
+            {
+                outer.receive_message(uuid, data.username, data.text);
+            }
         };
     }
 
@@ -1203,135 +1346,9 @@ class MultiPlayerSocket {
         }
     }
 
-/*
-    receive () {
-        let outer = this;
-
-        this.ws.onmessage = function(e) {
-            let data = JSON.parse(e.data);
-            let uuid = data.uuid;
-            if (uuid === outer.uuid) return false;
-
-            let event = data.event;
-            if (event === "create_player") {
-                outer.receive_create_player(uuid, data.username, data.photo);
-            } else if (event === "move_to") {
-                outer.receive_move_to(uuid, data.tx, data.ty);
-            } else if (event === "shoot_fireball") {
-                outer.receive_shoot_fireball(uuid, data.tx, data.ty, data.ball_uuid);
-            } else if (event === "attack") {
-                outer.receive_attack(uuid, data.attackee_uuid, data.x, data.y, data.angle, data.damage, data.ball_uuid);
-            } else if (event === "blink") {
-                outer.receive_blink(uuid, data.tx, data.ty);
-            } else if (event === "message") {
-                outer.receive_message(uuid, data.username, data.text);
-            }
-        };
-    }
-    send_create_player(username, photo) 
-    {
-        let outer = this;
-        //发送的API将JSON封装为字符串
-        this.ws.send(JSON.stringify({
-            'event': "create_player",
-            'uuid': outer.uuid,
-            'username': username,
-            'photo': photo,
-        }));
-    }
-/*
-    get_player(uuid) {
-        let players = this.playground.players;
-        for (let i = 0; i < players.length; i ++ ) {
-            let player = players[i];
-            if (player.uuid === uuid)
-                return player;
-        }
-
-        return null;
-    }    send_attack(attackee_uuid, x, y, angle, damage, ball_uuid) {
-        let outer = this;
-        this.ws.send(JSON.stringify({
-            'event': "attack",
-            'uuid': outer.uuid,
-            'attackee_uuid': attackee_uuid,
-            'x': x,
-            'y': y,
-            'angle': angle,
-            'damage': damage,
-            'ball_uuid': ball_uuid,
-        }));
-    }
-
-    receive_attack(uuid, attackee_uuid, x, y, angle, damage, ball_uuid) {
-        let attacker = this.get_player(uuid);
-        let attackee = this.get_player(attackee_uuid);
-
-        if (attacker && attackee) {
-            attackee.receive_attack(x, y, angle, damage, ball_uuid, attacker);
-        }
-    }
-
-    receive_create_player(uuid, username, photo)
-    {
-        let player = new Player(
-            this.playground,
-            this.playground.width / 2 / this.playground.scale,
-            0.5,
-            0.05,
-            "white",
-            0.15,
-            "enemy",
-            username,
-            photo,
-        );
-
-        player.uuid = uuid;
-        this.playground.players.push(player);
-    }
-/*
-    send_move_to(tx, ty) {
-        let outer = this;
-        this.ws.send(JSON.stringify({
-            'event': "move_to",
-            'uuid': outer.uuid,
-            'tx': tx,
-            'ty': ty,
-        }));
-    }
-
-    receive_move_to(uuid, tx, ty) {
-        let player = this.get_player(uuid);
-
-        if (player) {
-            player.move_to(tx, ty);
-        }
-    }
-
-    send_shoot_fireball(tx, ty, ball_uuid) {
-        let outer = this;
-        this.ws.send(JSON.stringify({
-            'event': "shoot_fireball",
-            'uuid': outer.uuid,
-            'tx': tx,
-            'ty': ty,
-            'ball_uuid': ball_uuid,
-        }));
-    }
-
-    receive_shoot_fireball(uuid, tx, ty, ball_uuid) {
-        let player = this.get_player(uuid);
-        if (player) {
-            let fireball = player.shoot_fireball(tx, ty);
-            fireball.uuid = ball_uuid;
-        }
-    }
-
-
-
-
+    //传递聊天信息
     send_message(username, text) {
-        let outer =this;
+        let outer = this;
         this.ws.send(JSON.stringify({
             'event': "message",
             'uuid': outer.uuid,
@@ -1340,11 +1357,12 @@ class MultiPlayerSocket {
         }));
     }
 
+    //接收聊天信息
     receive_message(uuid, username, text) {
         this.playground.chat_field.add_message(username, text);
     }
 
-*/
+
 }
 
 
@@ -1434,6 +1452,9 @@ class AcGamePlayground {
         //如果是联机模式
         else if (mode === "multi mode")
         {
+            //创建聊天功能的实例
+            this.chat_field = new ChatField(this);
+
             //创建ws连接
             this.mps = new MultiPlayerSocket (this);
 

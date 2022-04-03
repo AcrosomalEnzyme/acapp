@@ -5,7 +5,7 @@ class GameMap extends AcGameObject {
         super();
         this.playground = playground;
         //点一定要标对`
-        this.$canvas = $(`<canvas></canvas>`);
+        this.$canvas = $(`<canvas tabindex=0></canvas>`);
         //接下来操作的是context，这是2D的画布
         this.ctx = this.$canvas[0].getContext('2d');
         this.ctx.canvas.width = this.playground.width;
@@ -14,6 +14,7 @@ class GameMap extends AcGameObject {
     }
 
     start() {
+        this.$canvas.focus();
 
     }
 

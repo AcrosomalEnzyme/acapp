@@ -193,3 +193,44 @@ transition：设定变化的时间实现平滑变化*/
     left: 50%;
     transform: translate(-50%, -50%);
 }
+
+/*聊天历史记录*/
+.ac-game-chat-field-history {
+    /*绝对位置，为了放在canvas上分*/
+    position: absolute;
+    top: 66%;
+    left: 20%;
+
+    transform: translate(-50%, -50%);
+
+    width: 20%;
+    height: 32%;
+
+    color: white;
+    font-size: 2vh;
+
+    padding: 5px;
+    overflow: auto;
+}
+
+/*聊天历史记录滚动条*/
+.ac-game-chat-field-history::-webkit-scrollbar {
+    width: 0;
+}
+
+/*聊天输入框*/
+.ac-game-chat-field-input {
+    position: absolute;
+    top: 86%;
+    left: 20%;
+    transform: translate(-50%, -50%);
+
+    width: 20%;
+    height: 3vh;
+
+    color: white;
+    font-size: 2vh;
+
+    background-color: rgba(222,225,230, 0.2);
+}
+

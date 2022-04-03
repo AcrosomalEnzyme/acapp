@@ -31,6 +31,7 @@ class Player extends AcGameObject {
         this.friction = 0.9;
         //设置游戏无敌时间
         this.spent_time = 0;
+        //绘画火球技能
         //判断是否选了技能
         this.our_skill = null;
 
@@ -51,6 +52,7 @@ class Player extends AcGameObject {
             //发射火球技能
             this.fireball_coldtime = 3;
             this.fireball_img = new Image();
+        //绘画火球技能
             this.fireball_img.src = "https://app1881.acapp.acwing.com.cn/static/image/fireball.png";
 
             //闪现技能
@@ -103,9 +105,11 @@ class Player extends AcGameObject {
         //读取右键点击的时候鼠标的坐标
         this.playground.game_map.$canvas.mousedown(function(e){
 
+            
+
             //如果游戏没有进入战斗状态，直接返回
             if(outer.playground.state !== "fighting")
-                return false;
+                return true;
 
             //定义一个常量，记录整个屏幕的坐标
             const rect = outer.ctx.canvas.getBoundingClientRect();
@@ -172,7 +176,30 @@ class Player extends AcGameObject {
         });
 
         //获取键盘事件，canvas不能聚焦，用window获取，查keycode就行
-        $(window).keydown(function(e){
+        this.playground.game_map.$canvas.keydown(function(e){
+
+            //添加聊天的绑定
+            //回车键是13，esc键是27
+            //按下回车，打开聊天框
+            if (e.which === 13)
+            {
+                //console.log("test");
+                if (outer.playground.mode === "multi mode")
+                {
+                    //console.log("test2");
+                    outer.playground.chat_field.show_input();
+                    return false;
+                }
+            }
+            //按下esc键，退出聊天框
+            else if (e.which === 27)
+            {
+                if (outer.playground.mode === "multi mode")
+                {
+                    outer.playground.chat_field.hide_input();
+                    return false;
+                }
+            }
 
             //如果游戏没有进入战斗状态，直接返回
             if(outer.playground.state !== "fighting")
@@ -197,6 +224,7 @@ class Player extends AcGameObject {
                 outer.our_skill = "blink";
                 return false;
             }
+
         });
     }
 
