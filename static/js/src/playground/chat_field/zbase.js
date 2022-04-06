@@ -5,7 +5,7 @@ class ChatField
         this.playground = playground;
 
         //历史记录和输入框
-        this.$history = $(`<div class="ac-game-chat-field-history">test</div>`);
+        this.$history = $(`<div class="ac-game-chat-field-history"></div>`);
         this.$input = $(`<input type="text" class="ac-game-chat-field-input">`);
 
         this.$history.hide();

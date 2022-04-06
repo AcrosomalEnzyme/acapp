@@ -105,8 +105,6 @@ class Player extends AcGameObject {
         //读取右键点击的时候鼠标的坐标
         this.playground.game_map.$canvas.mousedown(function(e){
 
-            
-
             //如果游戏没有进入战斗状态，直接返回
             if(outer.playground.state !== "fighting")
                 return true;
@@ -372,7 +370,18 @@ class Player extends AcGameObject {
 
         this.update_move();
         this.render();
+        this.update_win();
 
+    }
+
+    //判定是否胜利
+    update_win()
+    {
+        if (this.playground.state === "fighting" && this.character === "me" && this.playground.players.length === 1)
+        {
+            this.playground.state = "over";
+            this.playground.score_board.win();
+        }
     }
 
     //更新技能冷却时间
@@ -535,9 +544,12 @@ class Player extends AcGameObject {
     on_destroy()
     {
         //死亡之后进入游戏结束状态
-        if (this.character === "me")
+        if (this.character === "me" && this.playground.state === "fighting")
+        {
             this.playground.state = "over";
-        //console.log("on_destroy");
+            this.playground.score_board.lose();
+        }
+            //console.log("on_destroy");
         for (let i = 0; i < this.playground.players.length; i ++)
         {
             if (this.playground.players[i] === this)

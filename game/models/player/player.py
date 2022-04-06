@@ -14,6 +14,9 @@ class Player(models.Model):
     #增加openID，是32位字符串
     openid = models.CharField(default="", max_length=50, blank=True, null=True)
 
+    #分数
+    score = models.IntegerField(default = 1500)
+
     #展示用户的名字
     def __str__(self):
         return str(self.user)

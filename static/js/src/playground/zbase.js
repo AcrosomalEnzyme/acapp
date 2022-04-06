@@ -19,14 +19,37 @@ class AcGamePlayground {
         return colors[Math.floor(Math.random() * 6)];
     }
 
+
+    //为窗口创建UUID
+    create_uuid()
+    {
+        let res = '';
+        for (let i = 0; i < 0; i ++ )
+        {
+            let x = parseInt(Math.floor(Math.random() * 10));
+            res += x;
+        }
+        return res;
+    }
+
     start()
     {
         let outer = this;
+        let uuid = this.create_uuid();
         //表示窗口大小被改变即触发函数
-        $(window).resize(function(){
+        //.后面表示名字
+        $(window).on(`resize.${uuid}`, function(){
             outer.resize();
         });
+
+        if (this.root.AcWingOS)
+        {
+            this.root.AcWingOS.api.window.on_close(function(){
+                $(window).off(`resize.${uuid}`);
+            });
+        }
     }
+
 
     //修改地图大小
     resize()
@@ -61,6 +84,8 @@ class AcGamePlayground {
         //房间未满是waiting，人满是fighting，游戏结束是over
         this.state = "waiting";
         this.notice_board = new NoticeBoard(this);
+        //创建游戏结束的图标
+        this.score_board = new ScoreBoard(this);
         this.player_count = 0;
 
         this.resize();
@@ -100,6 +125,37 @@ class AcGamePlayground {
     }
 
     hide() {
+        //移除players，要用while，因为一开始有调用hide，此时没有player会报错
+        while(this.players && this.players.length > 0)
+        {
+            this.players[0].destroy();
+        }
+
+        //移除game_map
+        if(this.game_map)
+        {
+            this.game_map.destroy();
+            this.game_map = null;
+        }
+
+        //移除状态版
+        if(this.notice_board)
+        {
+            this.notice_board.destroy();
+            this.notice_board = null;
+        }
+
+        //移除结果版
+        if(this.score_board)
+        {
+            this.score_board.destroy();
+            this.score_board = null;
+        }
+
+        //移除GameMap的HTML
+        //清空当前的HTML对象
+        this.$playground.empty();
+
         this.$playground.hide();
     }
 

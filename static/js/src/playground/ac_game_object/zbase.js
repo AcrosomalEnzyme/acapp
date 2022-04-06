@@ -31,6 +31,12 @@ class AcGameObject {
     update() {
     }
 
+    //在每一帧最后执行一次
+    late_update()
+    {
+        
+    }
+
     //在被销毁前执行一次
     on_destroy() {
     }
@@ -80,6 +86,13 @@ let AC_GAME_ANIMATION = function(timestamp)
             obj.update();
         }
     }
+
+    for(let i = 0; i < AC_GAME_OBJECTS.length; i ++)
+    {
+        let obj = AC_GAME_OBJECTS[i];
+        obj.late_update();
+    }
+
     //更新时间戳
     last_timestamp = timestamp;
     //利用递归实现每一帧都调用一次这个函数
