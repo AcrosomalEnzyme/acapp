@@ -20,7 +20,7 @@ from time import sleep
 from threading import Thread
 
 
-#引入channel_layer用于返回匹配结果
+#引入channel_layer
 from acapp.asgi import channel_layer
 #引入使并行变为串行
 from asgiref.sync import async_to_sync

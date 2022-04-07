@@ -11,6 +11,9 @@ class GameMap extends AcGameObject {
         this.ctx.canvas.width = this.playground.width;
         this.ctx.canvas.height = this.playground.height;
         this.playground.$playground.append(this.$canvas);
+        
+        //this.background_img = new Image();
+        //this.background_img.src = "https://app1881.acapp.acwing.com.cn/static/image/menu/background.JPG";
     }
 
     start() {
@@ -34,7 +37,8 @@ class GameMap extends AcGameObject {
 
     render() {
         //背景颜色,半透明还能使小球移动有拖尾的效果
-        this.ctx.fillStyle = "rgba(0, 0, 0, 0.2)";
+        this.ctx.fillStyle = "rgba(0, 0, 0, 0.15)";
+        //this.ctx.drawImage(this.background_img, this.ctx.canvas.width, this.ctx.canvas.height);
         //左上坐标和右下坐标
         this.ctx.fillRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
     }

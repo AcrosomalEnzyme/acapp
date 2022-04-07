@@ -52,13 +52,13 @@ class Player extends AcGameObject {
             //发射火球技能
             this.fireball_coldtime = 3;
             this.fireball_img = new Image();
-        //绘画火球技能
-            this.fireball_img.src = "https://app1881.acapp.acwing.com.cn/static/image/fireball.png";
+            //绘画火球技能
+            this.fireball_img.src = "https://app1881.acapp.acwing.com.cn/static/image/playground/fireball.png";
 
             //闪现技能
             this.blink_coldtime = 5;
             this.blink_img = new Image();
-            this.blink_img.src = "https://app1881.acapp.acwing.com.cn/static/image/blink.png";
+            this.blink_img.src = "https://app1881.acapp.acwing.com.cn/static/image/playground/blink.png";
         }
     }
 
@@ -107,6 +107,7 @@ class Player extends AcGameObject {
 
             //如果游戏没有进入战斗状态，直接返回
             if(outer.playground.state !== "fighting")
+
                 return true;
 
             //定义一个常量，记录整个屏幕的坐标
@@ -237,7 +238,7 @@ class Player extends AcGameObject {
         let angle = Math.atan2(ty - this.y, tx - this.x);
         //确定运动的方向
         let vx = Math.cos(angle), vy = Math.sin(angle);
-        let color = "orange";
+        let color = "yellow";
         let speed = 0.5;
         //火球可以攻击的距离
         let move_length = 1;
